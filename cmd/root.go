@@ -30,7 +30,7 @@ var RootCmd = &cobra.Command{
 	Short: "Code review your pull requests",
 	Long: `By running reviewer your repo's pull requests will get merged
 according to the configuration file.`,
-  	Run: func(cmd *cobra.Command, args []string) {
+    Run: func(cmd *cobra.Command, args []string) {
         // TODO: Work your own magic here
         fmt.Println("root called")
     },
