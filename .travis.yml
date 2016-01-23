@@ -4,5 +4,12 @@ go:
   - 1.5.3
 sudo: false
 
+install:
+    - go get -u github.com/golang/lint/golint
+    - go get -u github.com/spf13/cobra
+    - go get -u github.com/spf13/viper
+
 script:
     - go test -v
+    - golint
+    - go vet
