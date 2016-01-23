@@ -1,0 +1,9 @@
+language: go
+go:
+  - 1.5.2
+  - 1.5.3
+sudo: false
+
+script:
+    - cd reviewer/ && go test -v
+    - cd ../
