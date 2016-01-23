@@ -66,6 +66,7 @@ func initConfig() {
 
 	viper.SetConfigName(".reviewer") // name of config file (without extension)
 	viper.AddConfigPath("$HOME")  // adding home directory as first search path
+    viper.SetEnvPrefix("reviewer") // so viper.AutomaticEnv will get matching envvars starting with REVIEWER_
 	viper.AutomaticEnv()          // read in environment variables that match
 
 	// If a config file is found, read it in.
