@@ -18,7 +18,7 @@ import (
 	"errors"
 	"strings"
 
-    "github.com/spf13/viper"
+	"github.com/spf13/viper"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )

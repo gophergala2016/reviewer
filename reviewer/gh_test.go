@@ -26,7 +26,7 @@ import (
 var token = "GITHUB_USERS_TOKEN"
 
 type mockGHClient struct {
-    BaseURL *url.URL
+	BaseURL *url.URL
 }
 
 func mockGetString(k string) string {
