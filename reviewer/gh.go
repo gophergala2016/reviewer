@@ -29,11 +29,13 @@ var GetString = viper.GetString
 // NewGHClient contains the constructor for github.Client.
 var NewGHClient = github.NewClient
 
+// PullRequestInfo contains the id of the pull request and its current CR score.
 type PullRequestInfo struct {
 	number int // id of the pull request
 	score  int
 }
 
+// PullRequestInfoList continas the list of PullRequestInfos.
 type PullRequestInfoList []PullRequestInfo
 
 // GetClient returns a github.Client authenticated.
@@ -50,6 +52,7 @@ func GetClient() (*github.Client, error) {
 	return NewGHClient(tc), nil
 }
 
+// getCommentSuccesScore returns the score for the Comment.
 func getCommentSuccessScore(comment string) int {
 	score := 0
 	if strings.Contains(comment, "+1") {
@@ -61,6 +64,7 @@ func getCommentSuccessScore(comment string) int {
 	return score
 }
 
+// GetPullRequestInfos returns a PullRequestInfoList with the scoring updated.
 func GetPullRequestInfos(client *github.Client, owner string, repo string) (*PullRequestInfoList, error) {
 	pullRequests, _, err := client.PullRequests.List(owner, repo, nil)
 	if err != nil {
