@@ -8,8 +8,11 @@ install:
     - go get -u github.com/golang/lint/golint
     - go get -u github.com/spf13/cobra
     - go get -u github.com/spf13/viper
+    - go get -u github.com/google/go-github/github
+    - go get -u golang.org/x/oauth2
 
 script:
-    - go test -v
-    - golint
-    - go vet
+    - test -z "$(golint github.com/gophergala2016/reviewer/reviewer)"
+    - golint github.com/gophergala2016/reviewer/reviewer
+    - go test github.com/gophergala2016/reviewer/reviewer
+    - go vet github.com/gophergala2016/reviewer/reviewer
