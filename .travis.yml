@@ -12,7 +12,7 @@ install:
     - go get -u golang.org/x/oauth2
 
 script:
-    - test -z "$(golint reviewer)"
-    - golint reviewer
+    - test -z "$(golint github.com/gophergala2016/reviewer/reviewer)"
+    - golint github.com/gophergala2016/reviewer/reviewer
     - go test github.com/gophergala2016/reviewer/reviewer
-    - go vet
+    - go vet github.com/gophergala2016/reviewer/reviewer
