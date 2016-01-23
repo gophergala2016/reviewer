@@ -29,6 +29,7 @@ var GetString = viper.GetString
 // NewGHClient contains the constructor for github.Client.
 var NewGHClient = github.NewClient
 
+// PullRequestInfo contains the id of the pull request and its current CR score.
 type PullRequestInfo struct {
 	number int // id of the pull request
 	score  int
