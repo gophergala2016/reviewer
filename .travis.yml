@@ -5,5 +5,4 @@ go:
 sudo: false
 
 script:
-    - cd reviewer/ && go test -v
-    - cd ../
+    - go test -v
