@@ -18,22 +18,61 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gophergala2016/reviewer/reviewer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
 
-// This represents the base command when called without any subcommands
+type config struct {
+	Authorization struct {
+		Token string
+	}
+	Repositories map[string]struct {
+		Username string
+		Status   bool
+		Required int
+	}
+}
+
+// RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "reviewer",
 	Short: "Code review your pull requests",
 	Long: `By running reviewer your repo's pull requests will get merged
 according to the configuration file.`,
-    Run: func(cmd *cobra.Command, args []string) {
-        // TODO: Work your own magic here
-        fmt.Println("root called")
-    },
+	Run: func(cmd *cobra.Command, args []string) {
+		var C config
+		err := viper.Unmarshal(&C)
+		if err != nil {
+			fmt.Errorf("Error parsing configuration %v", err)
+		}
+		client, err := reviewer.GetClient()
+		if err != nil {
+			fmt.Errorf("Error creating GitHub client %v", err)
+		}
+
+		for repoName, repoParams := range C.Repositories {
+			if repoParams.Status == false {
+				fmt.Printf("- %v/%v Discarded (repo disabled)\n", repoParams.Username, repoName)
+				continue
+			}
+			prInfos, err := reviewer.GetPullRequestInfos(client, repoParams.Username, repoName)
+			if err != nil {
+				fmt.Errorf("Error getting pull request info of repo %v/%v", repoParams.Username, repoName)
+			}
+			fmt.Printf("+ %v/%v\n", repoParams.Username, repoName)
+			for _, prInfo := range *prInfos {
+				if prInfo.Score >= repoParams.Required {
+					fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, repoParams.Required)
+					// merge here
+				} else {
+					fmt.Printf("  - %v NOP   (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, repoParams.Required)
+				}
+			}
+		}
+	},
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -65,9 +104,9 @@ func initConfig() {
 	}
 
 	viper.SetConfigName(".reviewer") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")  // adding home directory as first search path
-    viper.SetEnvPrefix("reviewer") // so viper.AutomaticEnv will get matching envvars starting with REVIEWER_
-	viper.AutomaticEnv()          // read in environment variables that match
+	viper.AddConfigPath("$HOME")     // adding home directory as first search path
+	viper.SetEnvPrefix("reviewer")   // so viper.AutomaticEnv will get matching envvars starting with REVIEWER_
+	viper.AutomaticEnv()             // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
