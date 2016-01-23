@@ -46,11 +46,13 @@ according to the configuration file.`,
 		var C config
 		err := viper.Unmarshal(&C)
 		if err != nil {
-			fmt.Errorf("Error parsing configuration %v", err)
+			fmt.Printf("Error parsing configuration %v", err)
+			return
 		}
 		client, err := reviewer.GetClient()
 		if err != nil {
-			fmt.Errorf("Error creating GitHub client %v", err)
+			fmt.Printf("Error creating GitHub client %v", err)
+			return
 		}
 
 		for repoName, repoParams := range C.Repositories {
@@ -60,7 +62,8 @@ according to the configuration file.`,
 			}
 			prInfos, err := reviewer.GetPullRequestInfos(client, repoParams.Username, repoName)
 			if err != nil {
-				fmt.Errorf("Error getting pull request info of repo %v/%v", repoParams.Username, repoName)
+				fmt.Printf("Error getting pull request info of repo %v/%v", repoParams.Username, repoName)
+				return
 			}
 			fmt.Printf("+ %v/%v\n", repoParams.Username, repoName)
 			for _, prInfo := range *prInfos {
