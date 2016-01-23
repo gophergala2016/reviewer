@@ -55,6 +55,7 @@ according to the configuration file.`,
 			return
 		}
 
+		//TODO: validate imput parameters (e.g. Requiered = 0)
 		for repoName, repoParams := range C.Repositories {
 			if repoParams.Status == false {
 				fmt.Printf("- %v/%v Discarded (repo disabled)\n", repoParams.Username, repoName)
