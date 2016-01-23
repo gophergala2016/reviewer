@@ -15,11 +15,12 @@
 package reviewer
 
 import (
+	"errors"
 	"os"
-    "errors"
+	"strings"
 
-    "github.com/google/go-github/github"
-    "golang.org/x/oauth2"
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 // LookupEnv contains the function used to lookup environment variables.
@@ -28,16 +29,56 @@ var LookupEnv = os.LookupEnv
 // NewGHClient contains the constructor for github.Client.
 var NewGHClient = github.NewClient
 
+type PullRequestInfo struct {
+	number int // id of the pull request
+	score  int
+}
+
+type PullRequestInfoList []PullRequestInfo
+
 // GetClient returns a github.Client authenticated.
 func GetClient() (*github.Client, error) {
 	token, errEnv := LookupEnv("REVIEWER_TOKEN")
-    if errEnv {
-        return nil, errors.New("An error occurred getting REVIEWER_TOKEN environment variable")
-    }
-    ts := oauth2.StaticTokenSource(
-        &oauth2.Token{AccessToken: token},
-    )
-    tc := oauth2.NewClient(oauth2.NoContext, ts)
+	if !errEnv {
+		return nil, errors.New("An error occurred getting REVIEWER_TOKEN environment variable")
+	}
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	tc := oauth2.NewClient(oauth2.NoContext, ts)
 
-    return NewGHClient(tc), nil
+	return NewGHClient(tc), nil
+}
+
+func getCommentSuccessScore(comment string) int {
+	score := 0
+	if strings.Contains(comment, "+1") {
+		score++
+	}
+	if strings.Contains(comment, "-1") {
+		score--
+	}
+	return score
+}
+
+func GetPullRequestInfos(client *github.Client, owner string, repo string) (*PullRequestInfoList, error) {
+	pullRequests, _, err := client.PullRequests.List(owner, repo, nil)
+	if err != nil {
+		return nil, err
+	}
+	pris := make(PullRequestInfoList, len(pullRequests))
+	for n, pullRequest := range pullRequests {
+		pris[n].number = *pullRequest.Number
+		comments, _, err := client.Issues.ListComments(owner, repo, *pullRequest.Number, nil)
+		if err != nil {
+			return nil, err
+		}
+		for _, comment := range comments {
+			if comment.Body == nil {
+				continue
+			}
+			pris[n].score = getCommentSuccessScore(*comment.Body)
+		}
+	}
+	return &pris, nil
 }

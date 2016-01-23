@@ -15,18 +15,18 @@
 package reviewer
 
 import (
-    reviewer "."
+	reviewer "."
 
+	"net/url"
 	"reflect"
 	"testing"
-    "net/url"
 )
 
 // token contains the GH token.
 var token = "GITHUB_USERS_TOKEN"
 
-type mockGHClient struct{
-    BaseURL *url.URL
+type mockGHClient struct {
+	BaseURL *url.URL
 }
 
 func mockLookupEnv(k string) (string, bool) {
@@ -39,15 +39,31 @@ func mockLookupEnv(k string) (string, bool) {
 func TestGetGHAuth(t *testing.T) {
 	reviewer.LookupEnv = mockLookupEnv
 
-    var result interface{}
-    var errClient error
-    result, errClient = reviewer.GetClient()
+	var result interface{}
+	var errClient error
+	result, errClient = reviewer.GetClient()
 
-    if errClient != nil {
-        t.Fatalf("GetClient returned error(%s) when everything was ok", errClient)
-    }
+	if errClient != nil {
+		t.Fatalf("GetClient returned error(%s) when everything was ok", errClient)
+	}
 	v, err := result.(mockGHClient)
 	if err {
 		t.Fatalf("GetClient returned %s instead of github.Client", reflect.TypeOf(v))
 	}
+}
+
+func TestCommentSuccessScore(t *testing.T) {
+
+	testScore := func(comment string, expected int) {
+		score := getCommentSuccessScore(comment)
+		if expected != score {
+			t.Fatalf("Bad score %v (expected %v) for comment %v", score, expected, comment)
+		}
+	}
+
+	testScore("Don't do it", 0)
+	testScore("Yes +1", 1)
+	testScore(":+1", 1)
+	testScore("-1", -1)
+	testScore("Oops +1 :-1: +1", 0)
 }
