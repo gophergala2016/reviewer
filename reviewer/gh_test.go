@@ -26,18 +26,18 @@ import (
 var token = "GITHUB_USERS_TOKEN"
 
 type mockGHClient struct {
-	BaseURL *url.URL
+    BaseURL *url.URL
 }
 
-func mockLookupEnv(k string) (string, bool) {
-	if k == "REVIEWER_TOKEN" {
-		return token, false
+func mockGetString(k string) string {
+	if k == "authorization.token" {
+		return token
 	}
-	return "", true
+	return ""
 }
 
 func TestGetGHAuth(t *testing.T) {
-	reviewer.LookupEnv = mockLookupEnv
+	reviewer.GetString = mockGetString
 
 	var result interface{}
 	var errClient error

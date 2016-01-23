@@ -16,15 +16,15 @@ package reviewer
 
 import (
 	"errors"
-	"os"
 	"strings"
 
+    "github.com/spf13/viper"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
 
-// LookupEnv contains the function used to lookup environment variables.
-var LookupEnv = os.LookupEnv
+// GetString contains the function used to lookup environment variables.
+var GetString = viper.GetString
 
 // NewGHClient contains the constructor for github.Client.
 var NewGHClient = github.NewClient
@@ -38,8 +38,8 @@ type PullRequestInfoList []PullRequestInfo
 
 // GetClient returns a github.Client authenticated.
 func GetClient() (*github.Client, error) {
-	token, errEnv := LookupEnv("REVIEWER_TOKEN")
-	if !errEnv {
+	token := GetString("authorization.token")
+	if token == "" {
 		return nil, errors.New("An error occurred getting REVIEWER_TOKEN environment variable")
 	}
 	ts := oauth2.StaticTokenSource(
