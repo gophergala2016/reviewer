@@ -26,7 +26,7 @@ An example YAML file would have this format:
            username: cooldeveloper
            status: true
            required: 3
-       myevencoolaprip:
+       myevencoolapi:
            username: cooldeveloper
            status: true
            required: 2
@@ -52,6 +52,17 @@ TODO!
 
 You can use Reviewer basic functionality by simply invoking it directly:
 
-    $ reviewer
+      $ reviewer
+      Using config file: /home/user/.reviewer.yaml
+      + cooldeveloper/mycoolapp
+      + cooldeveloper/mycoolapi
+        - 47 NOP   (Changes CI badge location on README.md) score 1 of 3 required
 
-TODO!
+Where it first reports the configuration file used, if any.
+Then, it prints a list of the repos, with a list of the PRs pending to merge.
+For each PR, it shows:
+  - Pull request identifier
+  - Operation done, i.d. `NOP` if it doesn't satisfies requirements to be done, `MERGED`, if it was merged.
+  - Pull Request title, between brackets.
+  - Score from the approvals in the pull request comments.
+  - How many approvals were required.
