@@ -16,6 +16,8 @@ package reviewer
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -129,4 +131,46 @@ func PassedTests(client *GHClient, pullRequest *github.PullRequest, owner string
 		return false, err
 	}
 	return (*combinedStatus.State == "success"), nil
+}
+
+// Execute checks if the PR defers to be merged.
+func Execute() bool {
+	err := CheckFile()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = CheckRepositories()
+	if err != nil {
+		log.Fatal(err)
+	}
+	repositories := NewConfig(viper.Sub("repositories"))
+	client, err := GetClient()
+	if err != nil {
+		log.Fatalf("Error creating GitHub client %v", err)
+	}
+
+	//TODO: validate imput parameters (e.g. Required = 0)
+	for _, repoName := range repositories.AllKeys() {
+		username := repositories.GetString(repoName + ".username")
+		status := repositories.GetBool(repoName + ".status")
+		required := repositories.GetInt(repoName + ".required")
+		if !status {
+			fmt.Printf("- %v/%v Discarded (repo disabled)\n", username, repoName)
+			continue
+		}
+		prInfos, err := GetPullRequestInfos(client, username, repoName)
+		if err != nil {
+			log.Fatalf("Error getting pull request info of repo %v/%v", username, repoName)
+		}
+		fmt.Printf("+ %v/%v\n", username, repoName)
+		for _, prInfo := range prInfos {
+			if prInfo.Score >= required {
+				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
+				// merge here
+			} else {
+				fmt.Printf("  - %v NOP   (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
+			}
+		}
+	}
+	return true
 }

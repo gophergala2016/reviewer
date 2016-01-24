@@ -43,39 +43,7 @@ var RootCmd = &cobra.Command{
 	Long: `By running reviewer your repo's pull requests will get merged
 according to the configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var C config
-		err := viper.Unmarshal(&C)
-		if err != nil {
-			fmt.Printf("Error parsing configuration %v", err)
-			return
-		}
-		client, err := reviewer.GetClient()
-		if err != nil {
-			fmt.Printf("Error creating GitHub client %v", err)
-			return
-		}
-
-		//TODO: validate imput parameters (e.g. Requiered = 0)
-		for repoName, repoParams := range C.Repositories {
-			if repoParams.Status == false {
-				fmt.Printf("- %v/%v Discarded (repo disabled)\n", repoParams.Username, repoName)
-				continue
-			}
-			prInfos, err := reviewer.GetPullRequestInfos(client, repoParams.Username, repoName)
-			if err != nil {
-				fmt.Printf("Error getting pull request info of repo %v/%v", repoParams.Username, repoName)
-				return
-			}
-			fmt.Printf("+ %v/%v\n", repoParams.Username, repoName)
-			for _, prInfo := range prInfos {
-				if prInfo.Score >= repoParams.Required {
-					fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, repoParams.Required)
-					// merge here
-				} else {
-					fmt.Printf("  - %v NOP   (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, repoParams.Required)
-				}
-			}
-		}
+		reviewer.Execute()
 	},
 }
 

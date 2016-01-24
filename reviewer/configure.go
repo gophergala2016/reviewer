@@ -49,6 +49,16 @@ func (c *Config) GetString(key string) string {
 	return c.config.GetString(key)
 }
 
+// GetBool returns the value associated with the key as a bool
+func (c *Config) GetBool(key string) bool {
+	return c.config.GetBool(key)
+}
+
+// GetInt returns the value associated with the key as an integer
+func (c *Config) GetInt(key string) int {
+	return c.config.GetInt(key)
+}
+
 // IsSet contains the function used to check if key is set
 var IsSet = viper.IsSet
 
