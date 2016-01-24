@@ -187,17 +187,16 @@ func Execute(DryRun bool) bool {
 				continue
 			}
 			if prInfo.Score < required {
-				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
-				if !DryRun {
-					fmt.Printf("Merging")
-				}
-			} else {
 				fmt.Printf("  - %v NOP   (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
 				continue
 			}
-			fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
+			if !DryRun {
+				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
+				// merge here
+			} else {
+				fmt.Printf("  - %v (merge)  (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
+			}
 			continue
-			// merge here
 		}
 	}
 	return true
