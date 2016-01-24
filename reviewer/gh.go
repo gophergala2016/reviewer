@@ -30,9 +30,13 @@ var GetString = viper.GetString
 // ForgeClient is an interface for forge clients.
 type ForgeClient interface {}
 
+// ChangesServicer is an interface for listing changes.
+type ChangesServicer interface {}
+
 // GHClient is the wrapper around github.Client.
 type GHClient struct {
 	client *github.Client
+	changes *github.PullRequestsService
 }
 
 // NewGHClient is the constructor for GHClient.
@@ -40,6 +44,7 @@ func NewGHClient(httpClient *http.Client) *GHClient {
 	client := &GHClient{
 		client: github.NewClient(httpClient),
 	}
+	client.changes = client.client.PullRequests
 	return client
 }
 
@@ -85,7 +90,7 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) (*PullRequ
 	//      Also maybe we need to take care about how much requests are done in order to not exceed
 	//      the quota.
 
-	pullRequests, _, err := client.client.PullRequests.List(owner, repo, nil)
+	pullRequests, _, err := client.changes.List(owner, repo, nil)
 	if err != nil {
 		return nil, err
 	}
