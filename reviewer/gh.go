@@ -116,11 +116,6 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) ([]PullReq
 	return pris, nil
 }
 
-// IsMergeable returns true if the PullRequest is mergeable.
-func IsMergeable(pullRequest *github.PullRequest) bool {
-	return (pullRequest.Mergeable != nil) && (*pullRequest.Mergeable)
-}
-
 // PassedTests checks if the PR statuses are ok.
 func PassedTests(client *GHClient, pullRequest *github.PullRequest, owner string, repo string) (bool, error) {
 	head := *pullRequest.Head.SHA
@@ -168,7 +163,7 @@ func Execute() bool {
 				fmt.Printf("  - %v NOP   (%v) Failure getting pull request\n", prInfo.Number, prInfo.Title)
 				continue
 			}
-			if !IsMergeable(pullRequest) {
+			if !*pullRequest.Mergeable {
 				fmt.Printf("  - %v NOP   (%v) Not mergeable\n", prInfo.Number, prInfo.Title)
 				continue
 			}
