@@ -157,7 +157,7 @@ func Execute(DryRun bool) bool {
 		log.Fatalf("Error creating GitHub client %v", err)
 	}
 
-	//TODO: validate imput parameters (e.g. Required = 0)
+	//TODO: https://github.com/gophergala2016/reviewer/issues/38
 	for _, repoName := range repositories.AllKeys() {
 		username := repositories.GetString(repoName + ".username")
 		status := repositories.GetBool(repoName + ".status")
@@ -199,7 +199,7 @@ func Execute(DryRun bool) bool {
 			if !DryRun {
 				_, err := Merge(client, username, repoName, prInfo.Number)
 				if err != nil {
-					fmt.Printf("  + %v -merge- (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, err)
+					fmt.Printf("  + %v -merge- (%v)  Merge failed: %v\n", prInfo.Number, prInfo.Title, err)
 				}
 				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
 			} else {
