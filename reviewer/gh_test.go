@@ -103,7 +103,8 @@ func TestCommentSuccessScore(t *testing.T) {
 }
 
 func TestGetPullRequestsInfo(t *testing.T) {
-	emptyListPR := make([]github.PullRequest, 0)
+	var emptyListPR []github.PullRequest
+	emptyListPR = make([]github.PullRequest, 0, 1)
 	client := newMockGHClient(emptyListPR)
 
 	var result []reviewer.PullRequestInfo
