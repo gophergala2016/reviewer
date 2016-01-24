@@ -40,7 +40,12 @@ where:
       - `status`: Defining whether the repository is, or is not, enabled for checking.
       - `required`: Corresponds to the number of approvals required to go on with the merge, in case nothing else blocks it.
 
-TODO!
+You can get Reviewer's configuration by invoking the command configure:
+
+      $ reviewer configure
+      Using config file: /home/user/.reviewer.yaml
+      - cooldeveloper / mycoolapp ENABLED +1:3
+      - cooldeveloper / myevencoolapi ENABLED +1:2
 
   [YAML]: http://yaml.org/ "YAML format homepage"
   [TOML]: https://github.com/toml-lang/toml "TOML format definition"
