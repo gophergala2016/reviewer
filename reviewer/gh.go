@@ -114,3 +114,8 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) ([]PullReq
 	}
 	return pris, nil
 }
+
+// IsMergeable returns true if the PullRequest is mergeable.
+func IsMergeable(pullRequest *github.PullRequest) bool {
+	return (pullRequest.Mergeable != nil) && (*pullRequest.Mergeable)
+}
