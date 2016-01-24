@@ -31,12 +31,20 @@ var GetString = viper.GetString
 type ForgeClient interface {}
 
 // ChangesServicer is an interface for listing changes.
-type ChangesServicer interface {}
+type ChangesServicer interface {
+	List(string, string, ...interface{}) ([]interface{}, *interface{}, error)
+}
+
+// TicketsServicer is an interface for listing changes.
+type TicketsServicer interface {
+	ListComments(string, string, int, ...interface{}) ([]interface{}, *interface{}, error)
+}
 
 // GHClient is the wrapper around github.Client.
 type GHClient struct {
 	client *github.Client
 	changes *github.PullRequestsService
+	tickets *github.IssuesService
 }
 
 // NewGHClient is the constructor for GHClient.
@@ -45,6 +53,7 @@ func NewGHClient(httpClient *http.Client) *GHClient {
 		client: github.NewClient(httpClient),
 	}
 	client.changes = client.client.PullRequests
+	client.tickets = client.client.Issues
 	return client
 }
 
@@ -98,7 +107,7 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) (*PullRequ
 	for n, pullRequest := range pullRequests {
 		pris[n].Number = *pullRequest.Number
 		pris[n].Title = *pullRequest.Title
-		comments, _, err := client.client.Issues.ListComments(owner, repo, *pullRequest.Number, nil)
+		comments, _, err := client.tickets.ListComments(owner, repo, *pullRequest.Number, nil)
 		if err != nil {
 			return nil, err
 		}
