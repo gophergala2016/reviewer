@@ -43,11 +43,15 @@ func (m *mockChangesService) List(owner string, repo string, opt *github.PullReq
 }
 
 // mockTicketsService is a mock for github.PullRequestsService.
-type mockTicketsService struct {}
+type mockTicketsService struct {
+	listIssueComments [][]github.IssueComment
+}
 
 // newMockTicketsService creates a new TicketsService implementation.
-func newMockTicketsService() *mockTicketsService {
-	return &mockTicketsService{}
+func newMockTicketsService(listIssueComments [][]github.IssueComment) *mockTicketsService {
+	return &mockTicketsService{
+		listIssueComments: listIssueComments,
+	}
 }
 
 // mockTicketsService's List implementation.
@@ -56,10 +60,10 @@ func (m *mockTicketsService) ListComments(owner string, repo string, number int,
 }
 
 // Constructor for mockGHClient.
-func newMockGHClient(listPR []github.PullRequest) *reviewer.GHClient {
+func newMockGHClient(listPR []github.PullRequest, listIssueComments [][]github.IssueComment) *reviewer.GHClient {
 	client := &reviewer.GHClient{}
 	client.Changes = newMockChangesService(listPR)
-	client.Tickets = newMockTicketsService()
+	client.Tickets = newMockTicketsService(listIssueComments)
 	return client
 }
 
@@ -102,10 +106,20 @@ func TestCommentSuccessScore(t *testing.T) {
 	testScore("Oops +1 :-1: +1", 0)
 }
 
+func newMockPullRequest(number int, title string) github.PullRequest {
+	return github.PullRequest{
+		Number: &number,
+		Title: &title,
+	}
+}
+
 func TestGetPullRequestsInfo(t *testing.T) {
+	//TODO: More cases are needed here.
 	var emptyListPR []github.PullRequest
-	emptyListPR = make([]github.PullRequest, 0, 1)
-	client := newMockGHClient(emptyListPR)
+	emptyListPR = make([]github.PullRequest, 0)
+	var emptyListIC [][]github.IssueComment
+	emptyListIC = make([][]github.IssueComment, 0)
+	client := newMockGHClient(emptyListPR, emptyListIC)
 
 	var result []reviewer.PullRequestInfo
 	var err error
@@ -115,6 +129,33 @@ func TestGetPullRequestsInfo(t *testing.T) {
 		t.Fatalf("Something went wrong when getting PR information")
 	}
 	if len(result) != 0 {
-		t.Fatal("Got an empty list of PRInfos")
+		t.Fatal("Got a populated list of PRInfos")
+	}
+
+	onePR := make([]github.PullRequest, 1)
+	onePR[0] = newMockPullRequest(10, "Initial PR")
+	client = newMockGHClient(onePR, emptyListIC)
+
+	result, err = reviewer.GetPullRequestInfos(client, "user", "repo")
+
+	if err != nil {
+		t.Fatalf("Something went wrong when getting PR information")
+	}
+	if len(result) != 1 {
+		t.Fatal("Got a incorrect quantity of PRInfos:", len(result))
+	}
+
+	twoPR := make([]github.PullRequest, 2)
+	twoPR[0] = newMockPullRequest(10, "Initial PR")
+	twoPR[1] = newMockPullRequest(11, "Not so initial PR")
+	client = newMockGHClient(twoPR, emptyListIC)
+
+	result, err = reviewer.GetPullRequestInfos(client, "user", "repo")
+
+	if err != nil {
+		t.Fatalf("Something went wrong when getting PR information")
+	}
+	if len(result) != 2 {
+		t.Fatal("Got a incorrect quantity of PRInfos:", len(result))
 	}
 }
