@@ -152,9 +152,9 @@ func Execute() bool {
 	//TODO: validate imput parameters (e.g. Required = 0)
 	for _, repoName := range repositories.AllKeys() {
 		username := repositories.GetString(repoName + ".username")
-		status := repositories.GetString(repoName + ".status")
+		status := repositories.GetBool(repoName + ".status")
 		required := repositories.GetInt(repoName + ".required")
-		if status == "false" {
+		if !status {
 			fmt.Printf("- %v/%v Discarded (repo disabled)\n", username, repoName)
 			continue
 		}
