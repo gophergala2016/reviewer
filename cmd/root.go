@@ -24,6 +24,8 @@ import (
 )
 
 var cfgFile string
+
+// DryRun defines whether the program must actually act, or just give feedback as acting.
 var DryRun bool
 
 type config struct {
