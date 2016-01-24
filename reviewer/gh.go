@@ -197,8 +197,11 @@ func Execute(DryRun bool) bool {
 				continue
 			}
 			if !DryRun {
+				_, err := Merge(client, username, repoName, prInfo.Number)
+				if err != nil {
+					fmt.Printf("  + %v -merge- (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, err)
+				}
 				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
-				// merge here
 			} else {
 				fmt.Printf("  - %v (merge)  (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
 			}
