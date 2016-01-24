@@ -29,14 +29,14 @@ var GetString = viper.GetString
 // NewGHClient contains the constructor for github.Client.
 var NewGHClient = github.NewClient
 
-// PullRequestInfo Gives information about a pull request
+// PullRequestInfo contains the id, title, and CR score of a pull request.
 type PullRequestInfo struct {
 	Number int // id of the pull request
 	Title  string
 	Score  int
 }
 
-// PullRequestInfoList just an array of PullRequestInfo
+// PullRequestInfoList contains a list of PullRequestInfos.
 type PullRequestInfoList []PullRequestInfo
 
 // GetClient returns a github.Client authenticated.
@@ -53,6 +53,7 @@ func GetClient() (*github.Client, error) {
 	return NewGHClient(tc), nil
 }
 
+// getCommentSuccesScore returns the score for the Comment.
 func getCommentSuccessScore(comment string) int {
 	score := 0
 	if strings.Contains(comment, "+1") {
@@ -64,7 +65,7 @@ func getCommentSuccessScore(comment string) int {
 	return score
 }
 
-// GetPullRequestInfos returns the list of pull requests and their success score based on comments
+// GetPullRequestInfos returns the list of pull requests and the CR success score based on comments
 func GetPullRequestInfos(client *github.Client, owner string, repo string) (*PullRequestInfoList, error) {
 	//TODO: At this moment if there's a lot of PR, does not returns the full list, needs pagination.
 	//      Also maybe we need to take care about how much requests are done in order to not
