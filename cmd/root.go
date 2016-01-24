@@ -24,6 +24,7 @@ import (
 )
 
 var cfgFile string
+var DryRun bool
 
 type config struct {
 	Authorization struct {
@@ -43,7 +44,7 @@ var RootCmd = &cobra.Command{
 	Long: `By running reviewer your repo's pull requests will get merged
 according to the configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		reviewer.Execute()
+		reviewer.Execute(DryRun)
 	},
 }
 
@@ -66,7 +67,7 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.reviewer.yaml)")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	RootCmd.Flags().BoolVarP(&DryRun, "dry-run", "d", false, "Won't merge if enabled. Default: disabled.")
 }
 
 // initConfig reads in config file and ENV variables if set.
