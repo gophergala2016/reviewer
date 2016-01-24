@@ -42,6 +42,11 @@ func (m *mockChangesService) List(owner string, repo string, opt *github.PullReq
 	return m.listPullRequests, nil, nil
 }
 
+// mockChangesService's List implementation.
+func (m *mockChangesService) Get(owner string, repo string, number int) (*github.PullRequest, *github.Response, error) {
+	return nil, nil, nil
+}
+
 // mockTicketsService is a mock for github.PullRequestsService.
 type mockTicketsService struct {
 	listIssueComments [][]github.IssueComment

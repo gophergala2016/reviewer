@@ -32,6 +32,7 @@ var GetString = viper.GetString
 // ChangesServicer is an interface for listing changes.
 type ChangesServicer interface {
 	List(string, string, *github.PullRequestListOptions) ([]github.PullRequest, *github.Response, error)
+	Get(string, string, int) (*github.PullRequest, *github.Response, error)
 }
 
 // TicketsServicer is an interface for listing changes.
@@ -162,6 +163,22 @@ func Execute() bool {
 		}
 		fmt.Printf("+ %v/%v\n", username, repoName)
 		for _, prInfo := range prInfos {
+			pullRequest, _, err := client.Changes.Get(username, repoName, prInfo.Number)
+			if err != nil {
+				fmt.Printf("  - %v NOP   (%v) Failure getting pull request\n", prInfo.Number, prInfo.Title)
+				continue
+			}
+			if !IsMergeable(pullRequest) {
+				fmt.Printf("  - %v NOP   (%v) Not mergeable\n", prInfo.Number, prInfo.Title)
+			}
+			var passedTests bool
+			passedTests, err = PassedTests(client, pullRequest, username, repoName)
+			if err != nil {
+				fmt.Printf("  - %v NOP   (%v) %s", prInfo.Number, prInfo.Title, err)
+			}
+			if !passedTests {
+				fmt.Printf("  - %v NOP   (%v) Tests not passed", prInfo.Number, prInfo.Title)
+			}
 			if prInfo.Score >= required {
 				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
 				// merge here
