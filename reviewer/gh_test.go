@@ -108,8 +108,8 @@ func TestCommentSuccessScore(t *testing.T) {
 
 func newMockPullRequest(number int, title string, mergeable bool) github.PullRequest {
 	return github.PullRequest{
-		Number: &number,
-		Title: &title,
+		Number:    &number,
+		Title:     &title,
 		Mergeable: &mergeable,
 	}
 }
