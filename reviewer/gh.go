@@ -128,5 +128,5 @@ func PassedTests(client *GHClient, pullRequest *github.PullRequest, owner string
 	if err != nil {
 		return false, err
 	}
-	return (*combinedStatus.State != "success"), nil
+	return (*combinedStatus.State == "success"), nil
 }
