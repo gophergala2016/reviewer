@@ -133,7 +133,10 @@ func PassedTests(client *GHClient, pullRequest *github.PullRequest, owner string
 }
 
 // Execute checks if the PR defers to be merged.
-func Execute() bool {
+func Execute(DryRun bool) bool {
+	if DryRun {
+		fmt.Printf("Working in dry-run mode...\n")
+	}
 	err := CheckFile()
 	if err != nil {
 		log.Fatal(err)
@@ -159,7 +162,8 @@ func Execute() bool {
 		}
 		prInfos, err := GetPullRequestInfos(client, username, repoName)
 		if err != nil {
-			log.Fatalf("Error getting pull request info of repo %v/%v", username, repoName)
+			fmt.Printf("Error getting pull request info of repo %v/%v", username, repoName)
+			continue
 		}
 		fmt.Printf("+ %v/%v\n", username, repoName)
 		for _, prInfo := range prInfos {
@@ -183,6 +187,11 @@ func Execute() bool {
 				continue
 			}
 			if prInfo.Score < required {
+				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
+				if !DryRun {
+					fmt.Printf("Merging")
+				}
+			} else {
 				fmt.Printf("  - %v NOP   (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
 				continue
 			}
