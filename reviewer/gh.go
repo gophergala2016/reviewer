@@ -132,6 +132,12 @@ func PassedTests(client *GHClient, pullRequest *github.PullRequest, owner string
 	return (*combinedStatus.State == "success"), nil
 }
 
+// Merge does the merge.
+func Merge(client *GHClient, owner string, repo string, number int) (*github.PullRequestMergeResult, error) {
+	result, _, err := client.client.PullRequests.Merge(owner, repo, number, "Merged automatically by Reviewer")
+	return result, err
+}
+
 // Execute checks if the PR defers to be merged.
 func Execute(DryRun bool) bool {
 	if DryRun {
@@ -151,7 +157,7 @@ func Execute(DryRun bool) bool {
 		log.Fatalf("Error creating GitHub client %v", err)
 	}
 
-	//TODO: validate imput parameters (e.g. Required = 0)
+	//TODO: https://github.com/gophergala2016/reviewer/issues/38
 	for _, repoName := range repositories.AllKeys() {
 		username := repositories.GetString(repoName + ".username")
 		status := repositories.GetBool(repoName + ".status")
@@ -191,8 +197,11 @@ func Execute(DryRun bool) bool {
 				continue
 			}
 			if !DryRun {
+				_, err := Merge(client, username, repoName, prInfo.Number)
+				if err != nil {
+					fmt.Printf("  + %v -merge- (%v)  Merge failed: %v\n", prInfo.Number, prInfo.Title, err)
+				}
 				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
-				// merge here
 			} else {
 				fmt.Printf("  - %v (merge)  (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
 			}
