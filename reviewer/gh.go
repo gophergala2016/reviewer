@@ -27,12 +27,21 @@ import (
 // GetString contains the function used to lookup environment variables.
 var GetString = viper.GetString
 
-// ForgeClient is an interface for forge clients.
-type ForgeClient interface {}
+// ChangesServicer is an interface for listing changes.
+type ChangesServicer interface {
+	List(string, string, *github.PullRequestListOptions) ([]github.PullRequest, *github.Response, error)
+}
+
+// TicketsServicer is an interface for listing changes.
+type TicketsServicer interface {
+	ListComments(string, string, int, *github.IssueListCommentsOptions) ([]github.IssueComment, *github.Response, error)
+}
 
 // GHClient is the wrapper around github.Client.
 type GHClient struct {
 	client *github.Client
+	Changes ChangesServicer
+	Tickets TicketsServicer
 }
 
 // NewGHClient is the constructor for GHClient.
@@ -40,6 +49,8 @@ func NewGHClient(httpClient *http.Client) *GHClient {
 	client := &GHClient{
 		client: github.NewClient(httpClient),
 	}
+	client.Changes = client.client.PullRequests
+	client.Tickets = client.client.Issues
 	return client
 }
 
@@ -49,9 +60,6 @@ type PullRequestInfo struct {
 	Title  string
 	Score  int
 }
-
-// PullRequestInfoList contains a list of PullRequestInfos.
-type PullRequestInfoList []PullRequestInfo
 
 // GetClient returns a github.Client authenticated.
 func GetClient() (*GHClient, error) {
@@ -80,20 +88,20 @@ func getCommentSuccessScore(comment string) int {
 }
 
 // GetPullRequestInfos returns the list of pull requests and the CR success score based on comments
-func GetPullRequestInfos(client *GHClient, owner string, repo string) (*PullRequestInfoList, error) {
+func GetPullRequestInfos(client *GHClient, owner string, repo string) ([]PullRequestInfo, error) {
 	//TODO: At this moment if there's a lot of PR, does not returns the full list, needs pagination.
 	//      Also maybe we need to take care about how much requests are done in order to not exceed
 	//      the quota.
 
-	pullRequests, _, err := client.client.PullRequests.List(owner, repo, nil)
+	pullRequests, _, err := client.Changes.List(owner, repo, nil)
 	if err != nil {
 		return nil, err
 	}
-	pris := make(PullRequestInfoList, len(pullRequests))
+	pris := make([]PullRequestInfo, len(pullRequests))
 	for n, pullRequest := range pullRequests {
 		pris[n].Number = *pullRequest.Number
 		pris[n].Title = *pullRequest.Title
-		comments, _, err := client.client.Issues.ListComments(owner, repo, *pullRequest.Number, nil)
+		comments, _, err := client.Tickets.ListComments(owner, repo, *pullRequest.Number, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -104,5 +112,5 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) (*PullRequ
 			pris[n].Score += getCommentSuccessScore(*comment.Body)
 		}
 	}
-	return &pris, nil
+	return pris, nil
 }

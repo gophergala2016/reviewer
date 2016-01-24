@@ -17,7 +17,7 @@ package reviewer
 import (
 	reviewer "."
 
-	"net/url"
+	"github.com/google/go-github/github"
 	"reflect"
 	"testing"
 )
@@ -25,8 +25,42 @@ import (
 // token contains the GH token.
 var token = "GITHUB_USERS_TOKEN"
 
-type mockGHClient struct {
-	BaseURL *url.URL
+// mockChangesService is a mock for github.PullRequestsService.
+type mockChangesService struct {
+	listPullRequests []github.PullRequest
+}
+
+// newMockChangesService creates a new ChangesService implementation.
+func newMockChangesService(listPR []github.PullRequest) *mockChangesService {
+	return &mockChangesService{
+		listPullRequests: listPR,
+	}
+}
+
+// mockChangesService's List implementation.
+func (m *mockChangesService) List(owner string, repo string, opt *github.PullRequestListOptions) ([]github.PullRequest, *github.Response, error) {
+	return m.listPullRequests, nil, nil
+}
+
+// mockTicketsService is a mock for github.PullRequestsService.
+type mockTicketsService struct {}
+
+// newMockTicketsService creates a new TicketsService implementation.
+func newMockTicketsService() *mockTicketsService {
+	return &mockTicketsService{}
+}
+
+// mockTicketsService's List implementation.
+func (m *mockTicketsService) ListComments(owner string, repo string, number int, opt *github.IssueListCommentsOptions) ([]github.IssueComment, *github.Response, error) {
+	return nil, nil, nil
+}
+
+// Constructor for mockGHClient.
+func newMockGHClient(listPR []github.PullRequest) *reviewer.GHClient {
+	client := &reviewer.GHClient{}
+	client.Changes = newMockChangesService(listPR)
+	client.Tickets = newMockTicketsService()
+	return client
 }
 
 func mockGetString(k string) string {
@@ -46,7 +80,7 @@ func TestGetGHAuth(t *testing.T) {
 	if errClient != nil {
 		t.Fatalf("GetClient returned error(%s) when everything was ok", errClient)
 	}
-	v, err := result.(mockGHClient)
+	v, err := result.(reviewer.GHClient)
 	if err {
 		t.Fatalf("GetClient returned %s instead of github.Client", reflect.TypeOf(v))
 	}
@@ -66,4 +100,21 @@ func TestCommentSuccessScore(t *testing.T) {
 	testScore(":+1", 1)
 	testScore("-1", -1)
 	testScore("Oops +1 :-1: +1", 0)
+}
+
+func TestGetPullRequestsInfo(t *testing.T) {
+	var emptyListPR []github.PullRequest
+	emptyListPR = make([]github.PullRequest, 0, 1)
+	client := newMockGHClient(emptyListPR)
+
+	var result []reviewer.PullRequestInfo
+	var err error
+	result, err = reviewer.GetPullRequestInfos(client, "user", "repo")
+
+	if err != nil {
+		t.Fatalf("Something went wrong when getting PR information")
+	}
+	if len(result) != 0 {
+		t.Fatal("Got an empty list of PRInfos")
+	}
 }

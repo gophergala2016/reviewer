@@ -67,7 +67,7 @@ according to the configuration file.`,
 				return
 			}
 			fmt.Printf("+ %v/%v\n", repoParams.Username, repoName)
-			for _, prInfo := range *prInfos {
+			for _, prInfo := range prInfos {
 				if prInfo.Score >= repoParams.Required {
 					fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, repoParams.Required)
 					// merge here
