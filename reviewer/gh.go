@@ -132,6 +132,12 @@ func PassedTests(client *GHClient, pullRequest *github.PullRequest, owner string
 	return (*combinedStatus.State == "success"), nil
 }
 
+// Merge does the merge.
+func Merge(client *GHClient, owner string, repo string, number int) (*github.PullRequestMergeResult, error) {
+	result, _, err := client.client.PullRequests.Merge(owner, repo, number, "Merged automatically by Reviewer")
+	return result, err
+}
+
 // Execute checks if the PR defers to be merged.
 func Execute(DryRun bool) bool {
 	if DryRun {
