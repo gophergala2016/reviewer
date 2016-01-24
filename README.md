@@ -1,4 +1,4 @@
-# reviewer [![Build Status](https://travis-ci.org/gophergala2016/reviewer.svg)](https://travis-ci.org/gophergala2016/reviewer)
+# reviewer [![Build Status](https://travis-ci.org/gophergala2016/reviewer.svg)](https://travis-ci.org/gophergala2016/reviewer) [![ReportCard][ReportCard-Image]][ReportCard-Url]
 
 Reviewer is a tool for running easy code reviews in GitHub.
 
@@ -71,3 +71,6 @@ For each PR, it shows:
   - Pull Request title, between brackets.
   - Score from the approvals in the pull request comments.
   - How many approvals were required.
+
+[ReportCard-Url]: http://goreportcard.com/report/gophergala2016/reviewer
+[ReportCard-Image]: http://goreportcard.com/badge/gophergala2016/reviewer
