@@ -109,12 +109,12 @@ func TestCommentSuccessScore(t *testing.T) {
 func newMockPullRequest(number int, title string) github.PullRequest {
 	return github.PullRequest{
 		Number: &number,
-		Title: &title,
+		Title:  &title,
 	}
 }
 
 func TestGetPullRequestsInfo(t *testing.T) {
-	//TODO: More cases are needed here.
+	//TODO: https://github.com/gophergala2016/reviewer/issues/22
 	var emptyListPR []github.PullRequest
 	emptyListPR = make([]github.PullRequest, 0)
 	var emptyListIC [][]github.IssueComment

@@ -16,8 +16,8 @@ package reviewer
 
 import (
 	"errors"
-	"strings"
 	"net/http"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/spf13/viper"
@@ -39,7 +39,7 @@ type TicketsServicer interface {
 
 // GHClient is the wrapper around github.Client.
 type GHClient struct {
-	client *github.Client
+	client  *github.Client
 	Changes ChangesServicer
 	Tickets TicketsServicer
 }
@@ -89,9 +89,7 @@ func getCommentSuccessScore(comment string) int {
 
 // GetPullRequestInfos returns the list of pull requests and the CR success score based on comments
 func GetPullRequestInfos(client *GHClient, owner string, repo string) ([]PullRequestInfo, error) {
-	//TODO: At this moment if there's a lot of PR, does not returns the full list, needs pagination.
-	//      Also maybe we need to take care about how much requests are done in order to not exceed
-	//      the quota.
+	//TODO: https://github.com/gophergala2016/reviewer/issues/23
 
 	pullRequests, _, err := client.Changes.List(owner, repo, nil)
 	if err != nil {
