@@ -12,16 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package reviewer
 
 import (
+	"errors"
+	"fmt"
 	"github.com/spf13/viper"
 	"log"
-	"fmt"
-	"errors"
 )
 
+// ConfigRepositoriesChecker is an interface for checking Viper's keys or getting their values
+type ConfigRepositoriesChecker interface {
+	AllKeys() []string
+	GetString(key string) string
+}
+
+// Config is a wrapper around Viper
+type Config struct {
+	config *viper.Viper
+}
+
+// NewConfig is the constructor for Config.
+func NewConfig(viper *viper.Viper) *Config {
+	return &Config{
+		config: viper,
+	}
+}
+
+// AllKeys returns all keys regardless where they are set
+func (c *Config) AllKeys() []string {
+	return c.config.AllKeys()
+}
+
+// GetString returns the value associated with the key as a string
+func (c *Config) GetString(key string) string {
+	return c.config.GetString(key)
+}
+
+// IsSet contains the function used to check if key is set
+var IsSet = viper.IsSet
+
+// ConfigFileUsed contains the function used to get Configuration file used
+var ConfigFileUsed = viper.ConfigFileUsed
+
+// Configure runs all the checks needed for the config file to be set up correctly and prints the repositories available
 func Configure() {
 
 	err := CheckFile()
@@ -34,21 +68,17 @@ func Configure() {
 		log.Fatal(err)
 	}
 
-	resp, err2 := CheckRepositoriesData()
+	config := NewConfig(viper.Sub("repositories"))
+	resp, err2 := CheckRepositoriesData(config)
 	if err2 != nil {
 		log.Fatal(err2)
 	}
 
-	fmt.Printf("%s",resp)
+	fmt.Printf("%s", resp)
 
 }
 
-// ConfigFileUsed contains filename used for configuration.
-var ConfigFileUsed = viper.ConfigFileUsed
-var Sub = viper.Sub
-var IsSet = viper.IsSet
-var GetString = viper.GetString
-
+// CheckFile checks if the configuration file exists and is not empty
 func CheckFile() error {
 	configFile := ConfigFileUsed()
 	if configFile == "" {
@@ -57,30 +87,31 @@ func CheckFile() error {
 	return nil
 }
 
+// CheckRepositories checks if the configuration file has repositories
 func CheckRepositories() error {
-	if(!IsSet("repositories")){
+	if !IsSet("repositories") {
 		return errors.New("Repositories not set")
 	}
 	return nil
 }
 
-func CheckRepositoriesData() (s string, err error){
-	repo := Sub("repositories")
-	keys := repo.AllKeys()
-	var response = ""
+// CheckRepositoriesData checks if all the repositories have all the parameters set
+func CheckRepositoriesData(config ConfigRepositoriesChecker) (s string, err error) {
 
-	for _,v := range keys{
-		username := GetString("repositories."+v+".username")
-		status := GetString("repositories."+v+".status")
-		required := GetString("repositories."+v+".required")
-		if(username == "" || status == "" || required == "") {
+	keys := config.AllKeys()
+	var response = ""
+	for _, v := range keys {
+		username := config.GetString(v + ".username")
+		status := config.GetString(v + ".status")
+		required := config.GetString(v + ".required")
+		if username == "" || status == "" || required == "" {
 			return "", errors.New("Fields not set")
 		}
 		mode := "ENABLED"
 		if status == "false" {
 			mode = "DISABLED"
 		}
-		response += fmt.Sprintf("- %s / %s %s +1:%s\n", username, v, mode, required )
+		response += fmt.Sprintf("- %s / %s %s +1:%s\n", username, v, mode, required)
 	}
 	return response, nil
 }

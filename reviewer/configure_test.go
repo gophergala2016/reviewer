@@ -19,12 +19,45 @@ import (
 	"testing"
 )
 
+type mockConfig struct {
+	key string
+}
+
+func (v *mockConfig) AllKeys() []string {
+	a := []string{v.key}
+	return a
+}
+
+func (v *mockConfig) GetString(key string) string {
+	if key == "test.username" {
+		return "christofdamian"
+	} else if key == "test.status" {
+		return "true"
+	} else if key == "test.required" {
+		return "3"
+	} else if key == "test2.username" {
+		return ""
+	} else if key == "test2.status" {
+		return ""
+	} else if key == "test2.required" {
+		return ""
+	} else {
+		return ""
+	}
+}
+
+func newMockConfig(key string) *mockConfig {
+	return &mockConfig{
+		key: key,
+	}
+}
+
 func mockConfigFileUsed() string {
 	return ""
 }
 
 func mockConfigFileUsed2() string {
-	return "myfile"
+	return "/my/path/to/config/file"
 }
 
 func mockIsSet(a string) bool {
@@ -33,47 +66,6 @@ func mockIsSet(a string) bool {
 
 func mockIsSet2(a string) bool {
 	return true
-}
-
-
-type mockViper struct {}
-func (v *mockViper) AllKeys()  {
-	var a []string
-	a[0] = "test"
-	return a
-}
-
-func mockSub(a string) bool {
-	return mockViper
-}
-
-type mockViper2 struct {}
-func (v *mockViper2) AllKeys()  {
-	var a []string
-	a[0] = "test2"
-	return a
-}
-
-func mockSub2(a string) bool {
-	return mockViper
-}
-
-func mockGetString(a string) bool {
-	if a =="repositories.test.username" {
-		return "christofdamian"
-	}else if a== "repositories.test.status" {
-		return "true"
-	}else if a=="repositories.test.required"{
-		return "3"
-	}else if a =="repositories.test2.username"{
-		return ""
-	}else if a== "repositories.test2.status"{
-		return ""
-	}else if a=="repositories.test2.required"{
-		return ""
-	}else{
-		return ""
-	}
 }
 
 func TestCheckFile(t *testing.T) {
@@ -109,22 +101,26 @@ func TestCheckRepositories(t *testing.T) {
 }
 
 func TestCheckRepositoriesData(t *testing.T) {
-	/*reviewer.Sub = mockSub
-	reviewer.GetString = mockGetString
+	config := newMockConfig("test")
 
-	response,err := reviewer.CheckRepositoriesData()
+	response, err := reviewer.CheckRepositoriesData(config)
 	if err != nil {
+		t.Fatal("With parameters set not return error")
+	}
+
+	if response == "- christofdamian / test ENABLED +1:3" {
 		t.Fatal("With Repositories tag and repositories set, it should not complain")
 	}
 
-	if response != {
+	config = newMockConfig("test2")
 
+	response, err = reviewer.CheckRepositoriesData(config)
+	if err == nil {
+		t.Fatal("With parameters not set it should return error")
 	}
 
-	reviewer.Sub = mockSub2
+	if response != "" {
+		t.Fatal("With Repositories tag and repositories not set, it should complain")
+	}
 
-	response2,err2 := reviewer.CheckRepositoriesData()
-	if err != nil {
-		t.Fatal("With Repositories tag and repositories set, it should not complain")
-	}*/
 }
