@@ -49,6 +49,11 @@ func (c *Config) GetString(key string) string {
 	return c.config.GetString(key)
 }
 
+// GetInt returns the value associated with the key as an integer
+func (c *Config) GetInt(key string) int {
+	return c.config.GetInt(key)
+}
+
 // IsSet contains the function used to check if key is set
 var IsSet = viper.IsSet
 
