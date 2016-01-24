@@ -17,7 +17,6 @@ package reviewer
 import (
 	reviewer "."
 
-	"net/url"
 	"reflect"
 	"testing"
 )
@@ -25,9 +24,7 @@ import (
 // token contains the GH token.
 var token = "GITHUB_USERS_TOKEN"
 
-type mockGHClient struct {
-	BaseURL *url.URL
-}
+type mockGHClient struct {}
 
 func mockGetString(k string) string {
 	if k == "authorization.token" {
