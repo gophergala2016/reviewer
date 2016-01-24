@@ -170,21 +170,25 @@ func Execute() bool {
 			}
 			if !IsMergeable(pullRequest) {
 				fmt.Printf("  - %v NOP   (%v) Not mergeable\n", prInfo.Number, prInfo.Title)
+				continue
 			}
 			var passedTests bool
 			passedTests, err = PassedTests(client, pullRequest, username, repoName)
 			if err != nil {
-				fmt.Printf("  - %v NOP   (%v) %s", prInfo.Number, prInfo.Title, err)
+				fmt.Printf("  - %v NOP   (%v) %s\n", prInfo.Number, prInfo.Title, err)
+				continue
 			}
 			if !passedTests {
-				fmt.Printf("  - %v NOP   (%v) Tests not passed", prInfo.Number, prInfo.Title)
+				fmt.Printf("  - %v NOP   (%v) Tests not passed\n", prInfo.Number, prInfo.Title)
+				continue
 			}
-			if prInfo.Score >= required {
-				fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
-				// merge here
-			} else {
+			if prInfo.Score < required {
 				fmt.Printf("  - %v NOP   (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
+				continue
 			}
+			fmt.Printf("  + %v MERGE (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
+			continue
+			// merge here
 		}
 	}
 	return true
