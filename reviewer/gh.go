@@ -18,8 +18,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/spf13/viper"
 	"github.com/google/go-github/github"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
@@ -29,13 +29,14 @@ var GetString = viper.GetString
 // NewGHClient contains the constructor for github.Client.
 var NewGHClient = github.NewClient
 
-// PullRequestInfo contains the id of the pull request and its current CR score.
+// PullRequestInfo contains the id, title, and CR score of a pull request.
 type PullRequestInfo struct {
-	number int // id of the pull request
-	score  int
+	Number int // id of the pull request
+	Title  string
+	Score  int
 }
 
-// PullRequestInfoList continas the list of PullRequestInfos.
+// PullRequestInfoList contains a list of PullRequestInfos.
 type PullRequestInfoList []PullRequestInfo
 
 // GetClient returns a github.Client authenticated.
@@ -64,15 +65,20 @@ func getCommentSuccessScore(comment string) int {
 	return score
 }
 
-// GetPullRequestInfos returns a PullRequestInfoList with the scoring updated.
+// GetPullRequestInfos returns the list of pull requests and the CR success score based on comments
 func GetPullRequestInfos(client *github.Client, owner string, repo string) (*PullRequestInfoList, error) {
+	//TODO: At this moment if there's a lot of PR, does not returns the full list, needs pagination.
+	//      Also maybe we need to take care about how much requests are done in order to not
+	//        exceed the cuota
+
 	pullRequests, _, err := client.PullRequests.List(owner, repo, nil)
 	if err != nil {
 		return nil, err
 	}
 	pris := make(PullRequestInfoList, len(pullRequests))
 	for n, pullRequest := range pullRequests {
-		pris[n].number = *pullRequest.Number
+		pris[n].Number = *pullRequest.Number
+		pris[n].Title = *pullRequest.Title
 		comments, _, err := client.Issues.ListComments(owner, repo, *pullRequest.Number, nil)
 		if err != nil {
 			return nil, err
@@ -81,7 +87,7 @@ func GetPullRequestInfos(client *github.Client, owner string, repo string) (*Pul
 			if comment.Body == nil {
 				continue
 			}
-			pris[n].score = getCommentSuccessScore(*comment.Body)
+			pris[n].Score += getCommentSuccessScore(*comment.Body)
 		}
 	}
 	return &pris, nil
