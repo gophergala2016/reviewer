@@ -17,6 +17,7 @@ package reviewer
 import (
 	"errors"
 	"strings"
+	"net/http"
 
 	"github.com/google/go-github/github"
 	"github.com/spf13/viper"
@@ -26,8 +27,21 @@ import (
 // GetString contains the function used to lookup environment variables.
 var GetString = viper.GetString
 
-// NewGHClient contains the constructor for github.Client.
-var NewGHClient = github.NewClient
+// ForgeClient is an interface for forge clients.
+type ForgeClient interface {}
+
+// GHClient is the wrapper around github.Client.
+type GHClient struct {
+	client *github.Client
+}
+
+// NewGHClient is the constructor for GHClient.
+func NewGHClient(httpClient *http.Client) *GHClient {
+	client := &GHClient{
+		client: github.NewClient(httpClient),
+	}
+	return client
+}
 
 // PullRequestInfo contains the id, title, and CR score of a pull request.
 type PullRequestInfo struct {
@@ -40,10 +54,10 @@ type PullRequestInfo struct {
 type PullRequestInfoList []PullRequestInfo
 
 // GetClient returns a github.Client authenticated.
-func GetClient() (*github.Client, error) {
+func GetClient() (*GHClient, error) {
 	token := GetString("authorization.token")
 	if token == "" {
-		return nil, errors.New("An error occurred getting REVIEWER_TOKEN environment variable")
+		return nil, errors.New("An error occurred getting REVIEWER_TOKEN environment variable\n")
 	}
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -66,12 +80,12 @@ func getCommentSuccessScore(comment string) int {
 }
 
 // GetPullRequestInfos returns the list of pull requests and the CR success score based on comments
-func GetPullRequestInfos(client *github.Client, owner string, repo string) (*PullRequestInfoList, error) {
+func GetPullRequestInfos(client *GHClient, owner string, repo string) (*PullRequestInfoList, error) {
 	//TODO: At this moment if there's a lot of PR, does not returns the full list, needs pagination.
-	//      Also maybe we need to take care about how much requests are done in order to not
-	//        exceed the cuota
+	//      Also maybe we need to take care about how much requests are done in order to not exceed
+	//      the quota.
 
-	pullRequests, _, err := client.PullRequests.List(owner, repo, nil)
+	pullRequests, _, err := client.client.PullRequests.List(owner, repo, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +93,7 @@ func GetPullRequestInfos(client *github.Client, owner string, repo string) (*Pul
 	for n, pullRequest := range pullRequests {
 		pris[n].Number = *pullRequest.Number
 		pris[n].Title = *pullRequest.Title
-		comments, _, err := client.Issues.ListComments(owner, repo, *pullRequest.Number, nil)
+		comments, _, err := client.client.Issues.ListComments(owner, repo, *pullRequest.Number, nil)
 		if err != nil {
 			return nil, err
 		}
