@@ -32,13 +32,13 @@ type ForgeClient interface {}
 
 // GHClient is the wrapper around github.Client.
 type GHClient struct {
-	Client *github.Client
+	client *github.Client
 }
 
 // NewGHClient is the constructor for GHClient.
 func NewGHClient(httpClient *http.Client) *GHClient {
 	client := &GHClient{
-		Client: github.NewClient(httpClient),
+		client: github.NewClient(httpClient),
 	}
 	return client
 }
@@ -85,7 +85,7 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) (*PullRequ
 	//      Also maybe we need to take care about how much requests are done in order to not exceed
 	//      the quota.
 
-	pullRequests, _, err := client.Client.PullRequests.List(owner, repo, nil)
+	pullRequests, _, err := client.client.PullRequests.List(owner, repo, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) (*PullRequ
 	for n, pullRequest := range pullRequests {
 		pris[n].Number = *pullRequest.Number
 		pris[n].Title = *pullRequest.Title
-		comments, _, err := client.Client.Issues.ListComments(owner, repo, *pullRequest.Number, nil)
+		comments, _, err := client.client.Issues.ListComments(owner, repo, *pullRequest.Number, nil)
 		if err != nil {
 			return nil, err
 		}
