@@ -16,8 +16,8 @@ package reviewer
 
 import (
 	"errors"
-	"strings"
 	"net/http"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/spf13/viper"
@@ -39,7 +39,7 @@ type TicketsServicer interface {
 
 // GHClient is the wrapper around github.Client.
 type GHClient struct {
-	client *github.Client
+	client  *github.Client
 	Changes ChangesServicer
 	Tickets TicketsServicer
 }
