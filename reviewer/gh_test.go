@@ -106,10 +106,11 @@ func TestCommentSuccessScore(t *testing.T) {
 	testScore("Oops +1 :-1: +1", 0)
 }
 
-func newMockPullRequest(number int, title string) github.PullRequest {
+func newMockPullRequest(number int, title string, mergeable bool) github.PullRequest {
 	return github.PullRequest{
-		Number: &number,
-		Title:  &title,
+		Number:    &number,
+		Title:     &title,
+		Mergeable: &mergeable,
 	}
 }
 
@@ -133,7 +134,7 @@ func TestGetPullRequestsInfo(t *testing.T) {
 	}
 
 	onePR := make([]github.PullRequest, 1)
-	onePR[0] = newMockPullRequest(10, "Initial PR")
+	onePR[0] = newMockPullRequest(10, "Initial PR", false)
 	client = newMockGHClient(onePR, emptyListIC)
 
 	result, err = reviewer.GetPullRequestInfos(client, "user", "repo")
@@ -146,8 +147,8 @@ func TestGetPullRequestsInfo(t *testing.T) {
 	}
 
 	twoPR := make([]github.PullRequest, 2)
-	twoPR[0] = newMockPullRequest(10, "Initial PR")
-	twoPR[1] = newMockPullRequest(11, "Not so initial PR")
+	twoPR[0] = newMockPullRequest(10, "Initial PR", true)
+	twoPR[1] = newMockPullRequest(11, "Not so initial PR", false)
 	client = newMockGHClient(twoPR, emptyListIC)
 
 	result, err = reviewer.GetPullRequestInfos(client, "user", "repo")
@@ -157,5 +158,16 @@ func TestGetPullRequestsInfo(t *testing.T) {
 	}
 	if len(result) != 2 {
 		t.Fatal("Got a incorrect quantity of PRInfos:", len(result))
+	}
+}
+
+func TestIsMergeable(t *testing.T) {
+	id := 1
+	title := "Initial PR"
+	mergeable := true
+	pr := newMockPullRequest(id, title, mergeable)
+
+	if !reviewer.IsMergeable(&pr) {
+		t.Fatalf("PR #%d, %s should be mergeable", id, title)
 	}
 }
