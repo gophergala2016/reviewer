@@ -91,7 +91,7 @@ func getCommentSuccessScore(comment string) int {
 }
 
 // GetPullRequestInfos returns the list of pull requests and the CR success score based on comments
-func GetPullRequestInfos(client *GHClient, owner string, repo string) ([]PullRequestInfo, error) {
+func GetPullRequestInfos(client *GHClient, owner string, repo string, allowedUserLogins []string) ([]PullRequestInfo, error) {
 	//TODO: https://github.com/gophergala2016/reviewer/issues/23
 
 	pullRequests, _, err := client.Changes.List(owner, repo, nil)
@@ -106,11 +106,23 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) ([]PullReq
 		if err != nil {
 			return nil, err
 		}
+
+		users := make(map[string]bool)
+		for _, allowed := range allowedUserLogins {
+			users[allowed] = true
+		}
+
 		for _, comment := range comments {
-			if comment.Body == nil {
+			if comment.Body == nil || *comment.User.Login == *pullRequest.User.Login {
 				continue
 			}
-			pris[n].Score += getCommentSuccessScore(*comment.Body)
+			score := getCommentSuccessScore(*comment.Body)
+			if score != 0 {
+				if _, exists := users[*comment.User.Login]; exists {
+					pris[n].Score += score
+					delete(users, *comment.User.Login)
+				}
+			}
 		}
 	}
 	return pris, nil
@@ -118,7 +130,8 @@ func GetPullRequestInfos(client *GHClient, owner string, repo string) ([]PullReq
 
 // IsMergeable returns true if the PullRequest is mergeable.
 func IsMergeable(pullRequest *github.PullRequest) bool {
-	return *pullRequest.Mergeable
+	// Seems that when a merge is done, the rest of PRs mergeable flag are unavailable for some time (?)
+	return (pullRequest.Mergeable != nil) && *pullRequest.Mergeable
 }
 
 // PassedTests checks if the PR statuses are ok.
@@ -162,11 +175,13 @@ func Execute(DryRun bool) bool {
 		username := repositories.GetString(repoName + ".username")
 		status := repositories.GetBool(repoName + ".status")
 		required := repositories.GetInt(repoName + ".required")
+		allowed := repositories.GetStringSlice(repoName + ".allowed")
+
 		if !status {
 			fmt.Printf("- %v/%v Discarded (repo disabled)\n", username, repoName)
 			continue
 		}
-		prInfos, err := GetPullRequestInfos(client, username, repoName)
+		prInfos, err := GetPullRequestInfos(client, username, repoName, allowed)
 		if err != nil {
 			fmt.Printf("Error getting pull request info of repo %v/%v", username, repoName)
 			continue
@@ -205,7 +220,6 @@ func Execute(DryRun bool) bool {
 			} else {
 				fmt.Printf("  - %v (merge)  (%v) score %v of %v required\n", prInfo.Number, prInfo.Title, prInfo.Score, required)
 			}
-			continue
 		}
 	}
 	return true

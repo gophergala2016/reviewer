@@ -59,6 +59,11 @@ func (c *Config) GetInt(key string) int {
 	return c.config.GetInt(key)
 }
 
+// GetStringSlice returns the value associated with the key as an slice of strings
+func (c *Config) GetStringSlice(key string) []string {
+	return c.config.GetStringSlice(key)
+}
+
 // IsSet contains the function used to check if key is set
 var IsSet = viper.IsSet
 
