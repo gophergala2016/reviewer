@@ -129,7 +129,7 @@ func TestGetPullRequestsInfo(t *testing.T) {
 
 	var result []reviewer.PullRequestInfo
 	var err error
-	result, err = reviewer.GetPullRequestInfos(client, "user", "repo")
+	result, err = reviewer.GetPullRequestInfos(client, "user", "repo", []string{})
 
 	if err != nil {
 		t.Fatalf("Something went wrong when getting PR information")
@@ -142,7 +142,7 @@ func TestGetPullRequestsInfo(t *testing.T) {
 	onePR[0] = newMockPullRequest(10, "Initial PR", false)
 	client = newMockGHClient(onePR, emptyListIC)
 
-	result, err = reviewer.GetPullRequestInfos(client, "user", "repo")
+	result, err = reviewer.GetPullRequestInfos(client, "user", "repo", []string{})
 
 	if err != nil {
 		t.Fatalf("Something went wrong when getting PR information")
@@ -156,7 +156,7 @@ func TestGetPullRequestsInfo(t *testing.T) {
 	twoPR[1] = newMockPullRequest(11, "Not so initial PR", false)
 	client = newMockGHClient(twoPR, emptyListIC)
 
-	result, err = reviewer.GetPullRequestInfos(client, "user", "repo")
+	result, err = reviewer.GetPullRequestInfos(client, "user", "repo", []string{})
 
 	if err != nil {
 		t.Fatalf("Something went wrong when getting PR information")
