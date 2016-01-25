@@ -26,10 +26,17 @@ An example YAML file would have this format:
            username: cooldeveloper
            status: true
            required: 3
+           allowed:
+            - reviewer1
+            - reviewer2
+            - reviewern
        myevencoolapi:
            username: cooldeveloper
            status: true
            required: 2
+           allowed:
+            - reviewer1
+            - reviewern
 
 where:
 
@@ -39,6 +46,7 @@ where:
       - `username`: Would correspond to the username holding the repository to be checked.
       - `status`: Defining whether the repository is, or is not, enabled for checking.
       - `required`: Corresponds to the number of approvals required to go on with the merge, in case nothing else blocks it.
+      - `allowed`: Are the login names of the reviewers 
 
 You can get Reviewer's configuration by invoking the command configure:
 
